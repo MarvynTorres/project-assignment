@@ -58,6 +58,44 @@ class menu: #criando o menu
     def registerMenu(self):
         registerMenu, rmFrame = self.newWindow("Cadastrar Estoque")
 
+        rmTitle = ttk.Label(rmFrame ,text="CADASTRAR ESTOQUE", justify='center', font=("Arial Bold", 50))
+        rmTitle.grid(column=1, row=0, sticky=(N))
+
+        itemCode = ttk.Entry(rmFrame, width='15', font=("Arial", 14))
+        itemCode.grid(column=1, row=1, sticky=(E), padx=200)
+        itemCode.focus_set()
+
+        icLabel = ttk.Label(rmFrame, text="CÓDIGO DO ITEM:", font=("Arial", 16))
+        icLabel.grid(column=1, row=1, sticky=(W), padx=200)
+
+
+        itemDesc = ttk.Entry(rmFrame, width='15', font=("Arial", 14))
+        itemDesc.grid(column=1, row=2, sticky=(E), padx=200, pady=100)
+
+        idLabel = ttk.Label(rmFrame, text="DESCRIÇÃO DO ITEM:", font=("Arial", 16))
+        idLabel.grid(column=1, row=2, sticky=(W), padx=160, pady=100)
+
+
+        itemQtd = ttk.Entry(rmFrame, width=5, font=("Arial", 14))
+        itemQtd.grid(column=1, row=3, sticky=(E), padx=310, pady=10)
+
+        iqLabel = ttk.Label(rmFrame, text="QUANTIDADE DO ITEM:", font=("Arial", 16))
+        iqLabel.grid(column=1, columnspan=2, row=3, sticky=(W), padx=160, pady=10) 
+
+
+        itemPrice = ttk.Entry(rmFrame, width=10, font=("Arial", 14))
+        itemPrice.grid(column=1, row=4, sticky=(E), padx=255, pady=10)
+
+        ipLabel = ttk.Label(rmFrame, text="PREÇO PÚBLICO:", font=("Arial", 16))
+        ipLabel.grid(column=1, row=4, sticky=(W), padx=160, pady=10)
+
+
+        itemLocation = ttk.Entry(rmFrame, width=10, font=("Arial", 14))
+        itemLocation.grid(column=1, row=5, sticky=(E), padx=255, pady=10)
+
+        ilLabel = ttk.Label(rmFrame, text="LOCAÇÃO DO ITEM:" , font=("Arial", 16))
+        ilLabel.grid(column=1, row=5, sticky=(W), padx=160, pady=10)
+
     def newWindow(self, title, width=800, height=600):
         newWindow = Toplevel()
         newWindow.title(title)
@@ -75,8 +113,8 @@ class menu: #criando o menu
         newWindow.resizable(False, False)
 
         #gerar o mainframe da nova janela
-        nwFrame = ttk.Frame(newWindow, padding= "3 3 12 125")
-        nwFrame.grid(column=0, row=1, sticky=(N,W,E,S))
+        nwFrame = ttk.Frame(newWindow, padding= "3 3 12 12",)
+        nwFrame.grid(column=0, row=0, sticky=(N,W,E,S))
 
         #configurar o grid da mainframe e da janela
         newWindow.columnconfigure(0, weight=1)
