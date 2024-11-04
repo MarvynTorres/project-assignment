@@ -5,63 +5,59 @@ ICON_PATH = "icons/appIcon.ico"
 
 class menu: #criando o menu
     def __init__(self, window):
+        self.window = window
 
         #título da tela
         window.title("Gerenciamento de estoque")
         window.iconbitmap(ICON_PATH)
-        mainFrame=ttk.Frame(window, padding= "3 3 12 125")
-        mainFrame.grid(column=0, row=1, sticky=(N,W,E,S))
-        mainFrame.columnconfigure(1, weight=1)
-        mainFrame.rowconfigure(1, weight=1)
+        mainFrame=self.create_mainframe(window)
+        window.columnconfigure(0, weight=1)
         self.center_window(window)
         self.create_menu_buttons(mainFrame)
 
     def registerMenu(self):
         registerMenu, rmFrame = self.newWindow("Cadastrar Estoque")
+        registerMenu.columnconfigure(0, weight=1)
+        rmFrame.columnconfigure(1, weight=1)
+        rmFrame.rowconfigure(1, weight=1)
 
-        rmTitle = ttk.Label(rmFrame ,text="CADASTRAR ESTOQUE", justify='center', font=("Arial Bold", 50))
+        rmTitle = ttk.Label(rmFrame ,text="CADASTRAR ESTOQUE", font=("Arial Bold", 50))
         rmTitle.grid(column=1, row=0, sticky=(N), pady=50)
 
-        itemCode = ttk.Entry(rmFrame, width='15', font=("Arial", 14))
-        itemCode.grid(column=1, row=1, sticky=(E), padx=200)
-        itemCode.focus_set()
 
-        icLabel = ttk.Label(rmFrame, text="CÓDIGO DO ITEM:", font=("Arial", 16))
-        icLabel.grid(column=1, row=1, sticky=(W), padx=200)
+        widgets=[
+            ("CÓDIGO DO ITEM:", 1),
+            ("DESCRIÇÃO DO ITEM:", 2),
+            ("QUANTIDADE DO ITEM:", 3),
+            ("PREÇO PÚBLICO:", 4),
+            ("LOCAÇÃO DO ITEM:", 5)
+        ]
 
+        self.entries=[]
+        
+        for label, row in widgets:
+            newLabel = ttk.Label(rmFrame, text=label, font=("Arial", 16))
+            newLabel.grid(column=1, row=row, sticky=(W), padx=160, pady=10)
 
-        itemDesc = ttk.Entry(rmFrame, width='15', font=("Arial", 14))
-        itemDesc.grid(column=1, row=2, sticky=(E), padx=200, pady=10)
+            if(row==1 or row==2):
+                width=15
+                padx=200
+            elif(row==4 or row==5):
+                width=10 
+                padx=255
+            else:
+                width=5 
+                padx=310
 
-        idLabel = ttk.Label(rmFrame, text="DESCRIÇÃO DO ITEM:", font=("Arial", 16))
-        idLabel.grid(column=1, row=2, sticky=(W), padx=160, pady=10)
-
-
-        itemQtd = ttk.Entry(rmFrame, width=5, font=("Arial", 14))
-        itemQtd.grid(column=1, row=3, sticky=(E), padx=310, pady=10)
-
-        iqLabel = ttk.Label(rmFrame, text="QUANTIDADE DO ITEM:", font=("Arial", 16))
-        iqLabel.grid(column=1, row=3, sticky=(W), padx=160, pady=10) 
-
-
-        itemPrice = ttk.Entry(rmFrame, width=10, font=("Arial", 14))
-        itemPrice.grid(column=1, row=4, sticky=(E), padx=255, pady=10)
-
-        ipLabel = ttk.Label(rmFrame, text="PREÇO PÚBLICO:", font=("Arial", 16))
-        ipLabel.grid(column=1, row=4, sticky=(W), padx=160, pady=10)
-
-
-        itemLocation = ttk.Entry(rmFrame, width=10, font=("Arial", 14))
-        itemLocation.grid(column=1, row=5, sticky=(E), padx=255, pady=10)
-
-        ilLabel = ttk.Label(rmFrame, text="LOCAÇÃO DO ITEM:" , font=("Arial", 16))
-        ilLabel.grid(column=1, row=5, sticky=(W), padx=160, pady=10)
+            newEntry = ttk.Entry(rmFrame, width=width, font=("Arial", 14))
+            newEntry.grid(column=1, row=row, sticky=(E), padx=padx, pady=10)
+            self.entries.append(newEntry)
 
         style = ttk.Style()
-        style.configure("customButton.TButton", font=("Arial", 14))
+        style.configure("registerButton.TButton", font=("Arial", 14))
 
-        registerItem = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", width=20, style="customButton.TButton")
-        registerItem.grid(column=1, row=6, sticky=(S), pady=70)
+        registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", width=20, style="registerButton.TButton")
+        registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
     def newWindow(self, title):
         newWindow = Toplevel()
@@ -89,36 +85,33 @@ class menu: #criando o menu
         window.geometry(f"{width}x{eight}+{x_offset}+{y_offset}")
         window.resizable(False,False)   
 
-    def create_mainframe(self, window):
+    def create_mainframe(self, secWindow):
 
         #gerar uma mainframe, dentro da janela
-        Frame=ttk.Frame(window, padding= "3 3 12 125")
-        Frame.grid(column=0, row=1, sticky=(N,W,E,S))
+        secFrame=ttk.Frame(secWindow, padding= "3 3 12 125")
+        secFrame.grid(column=0, row=1, sticky=(N,W,E,S))
 
-        window.columnconfigure(0, weight=1)
-        window.columnconfigure(0, weight=1)
-        Frame.columnconfigure(1, weight=1)
-        Frame.rowconfigure(1, weight=1)
-
-        return Frame
+        return secFrame
 
     def create_menu_buttons(self, frame):
         title = ttk.Label(frame, text="MENU", justify='center', font=("Arial Bold", 80))
-        title.grid(column=1, row=0, sticky=('N'), pady=25)             
+        title.grid(column=1, row=0, sticky=('N'), pady=25)     
+        style = ttk.Style()
+        style.configure("menuButton.TButton", font=("Arial", 14))      
 
         buttons = [
             ("Cadastrar Estoque", self.registerMenu),
-            ("Consulta Estoque", lambda: None),
+            ("Consultar Estoque", lambda: None),
             ("Localizar Produto", lambda: None),
             ("Alterar Quantidade", lambda: None),
             ("Relatório", lambda: None),
-            #("Sair", self.window.destroy)
+            ("Sair", self.window.destroy)
         ]
 
         for i, (text, cmd) in enumerate(buttons):
             row, col = divmod(i, 3)
-            button = ttk.Button(frame, text=text, command=cmd, style="customButton.TButton")
-            button.grid(column=col, row=row+1, sticky=('W,E'), padx=50, pady=20, ipadx=10, ipady=50)
+            button = ttk.Button(frame, text=text, command=cmd, style="menuButton.TButton")
+            button.grid(column=col, row=row+1, sticky=('W,E'), padx=25, pady=20, ipadx=10, ipady=50)
 
 Window=Tk()
 menu(Window)
