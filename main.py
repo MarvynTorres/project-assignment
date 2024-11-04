@@ -15,7 +15,7 @@ class menu: #criando o menu
         self.center_window(window)
         self.create_menu_buttons(mainFrame)
 
-    def registerMenu(self):
+    def register_menu(self):
         registerMenu, rmFrame = self.newWindow("Cadastrar Estoque")
         registerMenu.columnconfigure(0, weight=1)
         rmFrame.columnconfigure(1, weight=1)
@@ -56,7 +56,7 @@ class menu: #criando o menu
         style = ttk.Style()
         style.configure("registerButton.TButton", font=("Arial", 14))
 
-        registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", width=20, style="registerButton.TButton")
+        registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", command=self.register_stock, width=20, style="registerButton.TButton")
         registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
     def newWindow(self, title):
@@ -100,7 +100,7 @@ class menu: #criando o menu
         style.configure("menuButton.TButton", font=("Arial", 14))      
 
         buttons = [
-            ("Cadastrar Estoque", self.registerMenu),
+            ("Cadastrar Estoque", self.register_menu),
             ("Consultar Estoque", lambda: None),
             ("Localizar Produto", lambda: None),
             ("Alterar Quantidade", lambda: None),
@@ -112,6 +112,10 @@ class menu: #criando o menu
             row, col = divmod(i, 3)
             button = ttk.Button(frame, text=text, command=cmd, style="menuButton.TButton")
             button.grid(column=col, row=row+1, sticky=('W,E'), padx=25, pady=20, ipadx=10, ipady=50)
+
+    def register_stock(self):
+        values = [entry.get() for entry in self.entries]
+        
 
 Window=Tk()
 menu(Window)
