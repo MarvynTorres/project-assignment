@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk #importando os módulos de interface gráfica
+import sqlite3 as sql
 
 ICON_PATH = "icons/appIcon.ico"
 
