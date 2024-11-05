@@ -18,9 +18,10 @@ class menu: #criando o menu
 
     def register_menu(self):
         registerMenu, rmFrame = self.newWindow("Cadastrar Estoque")
+        self.registerMenu = registerMenu
+        self.rmFrame = rmFrame
         registerMenu.columnconfigure(0, weight=1)
         rmFrame.columnconfigure(1, weight=1)
-        rmFrame.rowconfigure(1, weight=1)
 
         rmTitle = ttk.Label(rmFrame ,text="CADASTRAR ESTOQUE", font=("Arial Bold", 50))
         rmTitle.grid(column=1, row=0, sticky=(N), pady=50)
@@ -43,12 +44,12 @@ class menu: #criando o menu
             if(row==1 or row==2):
                 width=15
                 padx=200
-            elif(row==4 or row==5):
-                width=10 
-                padx=255
-            else:
+            elif(row==3):
                 width=5 
                 padx=310
+            else:
+                width=10 
+                padx=255
 
             newEntry = ttk.Entry(rmFrame, width=width, font=("Arial", 14))
             newEntry.grid(column=1, row=row, sticky=(E), padx=padx, pady=10)
@@ -114,10 +115,53 @@ class menu: #criando o menu
             button = ttk.Button(frame, text=text, command=cmd, style="menuButton.TButton")
             button.grid(column=col, row=row+1, sticky=('W,E'), padx=25, pady=20, ipadx=10, ipady=50)
 
+    def db_connect(self):
+        self.conn = sql.connect("Sistema_Estoque.db")
+        self.cursor = self.conn.cursor()
+
+        create_table = """
+        CREATE TABLE IF NOT EXISTS Pecas(
+            id STRING PRIMARY KEY,
+            desc STRING NOT NULL,
+            qtd INTEGER NOT NULL,
+            price INTEGER NOT NULL,
+            loc STRING NOT NULL
+        );
+        """
+
+        self.cursor.execute(create_table)
+        self.conn.commit()
+
+
     def register_stock(self):
         values = [entry.get() for entry in self.entries]
-        
+        fetch_table = "SELECT id FROM Pecas WHERE id = ?;"
+        self.cursor.execute(fetch_table, (values[0],))
+        existing_id = self.cursor.fetchone()
+        if((values[0])==""):
+            self.show_message(self.rmFrame, "O ITEM PRECISA TER UM CÓDIGO!", "red", 1, 6)
+            return    
+        elif(existing_id!=None):
+            self.show_message(self.rmFrame, "ESSE ITEM JÁ ESTÁ CADASTRADO NO ESTOQUE!", "red", 1, 6)
+            return
+        elif not values[2].isdigit() or not values[3].isdigit():
+            self.show_message(self.rmFrame, "VALOR OU QUANTIDADE INVÁLIDA", "red", 1, 6)
+            return
+        else: 
+            try:
+                insert_table = "INSERT INTO Pecas (id, desc, qtd, price, loc) VALUES (?, ?, ?, ?, ?);"
+                self.cursor.execute(insert_table, (values[0], values[1], int(values[2]), int(values[3]), values[4]))
+                self.conn.commit()
+                self.show_message(self.rmFrame, "CADASTRO REALIZADO COM SUCESSO", "green", 1, 6)
+            except sql.Error as e:
+                self.show_message(self.rmFrame, f"ERRO NO BANCO DE DADOS: {e}", "red", 1, 6)
+
+    def show_message(self, frame, message, foreground, column, row):
+        statusLabel = ttk.Label(frame, text=message, foreground=foreground, font=("Arial", 16), relief='sunken')
+        statusLabel.grid(column=column, row=row)
+        frame.after(2000, statusLabel.destroy)
 
 Window=Tk()
+menu.db_connect(menu)
 menu(Window)
 Window.mainloop()
