@@ -17,7 +17,7 @@ class menu: #criando o menu
         self.create_menu_buttons(mainFrame)
 
     def register_menu(self):
-        registerMenu, rmFrame = self.newWindow("Cadastrar Estoque")
+        registerMenu, rmFrame = self.new_window("Cadastrar Estoque")
         self.registerMenu = registerMenu
         self.rmFrame = rmFrame
         registerMenu.columnconfigure(0, weight=1)
@@ -58,20 +58,63 @@ class menu: #criando o menu
         style = ttk.Style()
         style.configure("registerButton.TButton", font=("Arial", 14))
 
-        registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", command=self.register_stock, width=20, style="registerButton.TButton")
+        registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", command=self.register_inventory, width=20, style="registerButton.TButton")
         registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
-    def newWindow(self, title):
-        newWindow = Toplevel()
-        newWindow.title(title)
+    def query_menu(self):
+        queryMenu, qmFrame = self.new_window("Consultar Estoque")
+        queryMenu.columnconfigure(1, weight=1)
+        qmFrame.columnconfigure(1, weight=1)
+        QMTitle = ttk.Label(qmFrame, text="CONSULTAR ESTOQUE", font=("Arial Bold", 52))
+        QMTitle.grid(column=1, row=0, sticky=(N))
 
-        nwFrame = self.create_mainframe(newWindow)
-        self.center_window(newWindow)
+        options = [
+            "CÓDIGO DO ITEM",
+            "DESCRIÇÃO DO ITEM",
+            "QUANTIDADE DO ITEM",
+            "PREÇO DO ITEM",
+            "LOCAÇÃO DO ITEM"
+        ]
+
+        options = options
+
+        ttk.Label(qmFrame, text="PESQUISAR POR:", font=("Arial", 20)).grid(column=1, row=1, pady=10)
+        self.searchOption = ttk.Combobox(qmFrame, values=options, width=22, state="readonly", font=("Arial", 12))
+        self.searchOption.grid(column=1, row=2, pady=10)
+        self.searchOption.set(options[0])
+        self.searchOption.bind("<<ComboboxSelected>>", lambda event: self.search_choice())
+        self.searchLabel=ttk.Label(qmFrame, text=(f"{options[0]}:"), font=("Arial", 20))
+        self.searchLabel.grid(column=1, row=3, sticky=(N), pady=10)
+        searchEntry = ttk.Entry(qmFrame, width=25)
+        searchEntry.grid(column=1, row=4, pady=5)
+
+        self.stockList = ttk.Treeview(qmFrame)
+        self.stockList.grid(column=1, row=5, pady=10, sticky=(W,E,S,N))
+        self.stock_list()
+
+    def stock_list(self):
+        db_query = "SELECT * FROM Pecas"
+        self.cursor.execute(db_query)
+        dbList = self.cursor.fetchall()
+
+        for itens in dbList:
+            self.stockList.insert("", END, values=itens)
+
+    def search_choice(self):
+        searchChoice = self.searchOption.get()
+        self.searchLabel.config(text=(f"{searchChoice}:"))
+
+    def new_window(self, title):
+        NewWindow = Toplevel()
+        NewWindow.title(title)
+
+        nwFrame = self.create_mainframe(NewWindow)
+        self.center_window(NewWindow)
 
         #icone da janela
-        newWindow.iconbitmap(ICON_PATH)
+        NewWindow.iconbitmap(ICON_PATH)
 
-        return newWindow, nwFrame
+        return NewWindow, nwFrame
 
     def center_window(self, window, width=800, eight=600):
 
@@ -103,7 +146,7 @@ class menu: #criando o menu
 
         buttons = [
             ("Cadastrar Estoque", self.register_menu),
-            ("Consultar Estoque", lambda: None),
+            ("Consultar Estoque", self.query_menu),
             ("Localizar Produto", lambda: None),
             ("Alterar Quantidade", lambda: None),
             ("Relatório", lambda: None),
@@ -116,7 +159,7 @@ class menu: #criando o menu
             button.grid(column=col, row=row+1, sticky=('W,E'), padx=25, pady=20, ipadx=10, ipady=50)
 
     def db_connect(self):
-        self.conn = sql.connect("Sistema_Estoque.db")
+        self.conn = sql.connect("inventory_system.db")
         self.cursor = self.conn.cursor()
 
         create_table = """
@@ -133,7 +176,7 @@ class menu: #criando o menu
         self.conn.commit()
 
 
-    def register_stock(self):
+    def register_inventory(self):
         values = [entry.get() for entry in self.entries]
         fetch_table = "SELECT id FROM Pecas WHERE id = ?;"
         self.cursor.execute(fetch_table, (values[0],))
