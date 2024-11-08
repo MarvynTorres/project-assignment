@@ -62,13 +62,15 @@ class menu: #criando o menu
         registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
     def query_menu(self):
+
         queryMenu, qmFrame = self.new_window("Consultar Estoque")
+        self.qmFrame = qmFrame
         queryMenu.columnconfigure(1, weight=1)
         qmFrame.columnconfigure(1, weight=1)
         QMTitle = ttk.Label(qmFrame, text="CONSULTAR ESTOQUE", font=("Arial Bold", 52))
         QMTitle.grid(column=1, row=0, sticky=(N))
 
-        options = [
+        self.options = [
             "CÓDIGO DO ITEM",
             "DESCRIÇÃO DO ITEM",
             "QUANTIDADE DO ITEM",
@@ -76,29 +78,65 @@ class menu: #criando o menu
             "LOCAÇÃO DO ITEM"
         ]
 
-        options = options
-
         ttk.Label(qmFrame, text="PESQUISAR POR:", font=("Arial", 20)).grid(column=1, row=1, pady=10)
-        self.searchOption = ttk.Combobox(qmFrame, values=options, width=22, state="readonly", font=("Arial", 12))
+        self.searchOption = ttk.Combobox(qmFrame, values=self.options, width=22, state="readonly", font=("Arial", 12))
         self.searchOption.grid(column=1, row=2, pady=10)
-        self.searchOption.set(options[0])
+        self.searchOption.set(self.options[0])
         self.searchOption.bind("<<ComboboxSelected>>", lambda event: self.search_choice())
-        self.searchLabel=ttk.Label(qmFrame, text=(f"{options[0]}:"), font=("Arial", 20))
+        self.searchLabel=ttk.Label(qmFrame, text=(f"{self.options[0]}:"), font=("Arial", 20))
         self.searchLabel.grid(column=1, row=3, sticky=(N), pady=10)
-        searchEntry = ttk.Entry(qmFrame, width=25)
-        searchEntry.grid(column=1, row=4, pady=5)
+        self.searchEntry = ttk.Entry(qmFrame, width=25)
+        self.searchEntry.grid(column=1, row=4, pady=5)
+        self.searchEntry.bind("<Return>", lambda event: self.stock_list())
+        self.items_view()
 
-        self.stockList = ttk.Treeview(qmFrame)
-        self.stockList.grid(column=1, row=5, pady=10, sticky=(W,E,S,N))
-        self.stock_list()
+    def items_view(self):
+        self.stockList = ttk.Treeview(self.qmFrame, columns=("id", "desc", "qtd", "price", "loc"), show="headings")
+        self.stockList.grid(column=1, row=5, pady=10)
+
+        self.stockList.heading("id", text="ID")
+        self.stockList.heading("desc", text="Descrição")
+        self.stockList.heading("qtd", text="Quantidade")
+        self.stockList.heading("price", text="Preço")
+        self.stockList.heading("loc", text="Locação")
+
+        self.stockList.column("id", anchor="center", width=80)
+        self.stockList.column("desc", anchor="center", width=200)
+        self.stockList.column("qtd", anchor="center", width=100)
+        self.stockList.column("price", anchor="center", width=100)
+        self.stockList.column("loc", anchor="center", width=100)
 
     def stock_list(self):
-        db_query = "SELECT * FROM Pecas"
-        self.cursor.execute(db_query)
-        dbList = self.cursor.fetchall()
+        if self.searchOption.get()==self.options[0]:
+            db_query = "SELECT * FROM Pecas WHERE id = ?"
+            self.cursor.execute(db_query, (self.searchEntry.get(),))
+            dbList = self.cursor.fetchall()
+        elif self.searchOption.get()==self.options[1]:
+            db_query = "SELECT * FROM Pecas WHERE desc = ?"
+            self.cursor.execute(db_query, (self.searchEntry.get(),))
+            dbList = self.cursor.fetchall()
+        elif self.searchOption.get()==self.options[2]:
+            db_query = "SELECT * FROM Pecas WHERE qtd = ?"
+            self.cursor.execute(db_query, (self.searchEntry.get(),))
+            dbList = self.cursor.fetchall()
+        elif self.searchOption.get()==self.options[3]:
+            db_query = "SELECT * FROM Pecas WHERE price = ?"
+            self.cursor.execute(db_query, (self.searchEntry.get(),))
+            dbList = self.cursor.fetchall()
+        else:
+            db_query = "SELECT * FROM Pecas WHERE loc = ?"
+            self.cursor.execute(db_query, (self.searchEntry.get(),))
+            dbList = self.cursor.fetchall()
+            
+        for item in self.stockList.get_children():
+            self.stockList.delete(item)
 
-        for itens in dbList:
-            self.stockList.insert("", END, values=itens)
+        if dbList:
+            for item in dbList:
+                self.stockList.insert("", "end", values=item)
+                print("Item encontrado!")
+        else:
+            print("Nenhum item encontrado.")
 
     def search_choice(self):
         searchChoice = self.searchOption.get()
