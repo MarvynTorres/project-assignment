@@ -61,6 +61,85 @@ class menu: #criando o menu
         registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", command=self.register_inventory, width=20, style="registerButton.TButton")
         registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
+    def inventory_update(self):
+        iuMenu, iuFrame = self.new_window("Alterar Quantidade")
+        self.iuFrame = iuFrame
+        iuMenu.columnconfigure(1, weight=1)
+        iuFrame.columnconfigure(1, weight=1)
+        iuTitle = ttk.Label(iuFrame, text="ALTERAR QUANTIDADE", font=("Arial Bold", 46))
+        iuTitle.grid(column=1, row=0, pady=5)
+
+        iuLabels = [
+            ("Código do Item:", 1),
+            ("Quantidade Atual:", 2),
+            ("Quantidade Atualizada:", 3)
+        ]
+        self.iuEntrys = []
+        for text, row in iuLabels:
+            ttk.Label(iuFrame, text=text, font=("Arial", 26)).grid(column=1, row=row, pady=10, padx=80, sticky=(W))
+            newEntry = ttk.Entry(iuFrame, width=15, font=("Arial", 14))
+            if(row!=2):
+                newEntry.grid(column=1, row=row, sticky=(E), padx=80, pady=10)
+                self.iuEntrys.append(newEntry)
+            else:
+                self.itemQty = ttk.Label(iuFrame, text=None, font=("Arial", 26))
+                self.itemQty.grid(column=1, row=2, sticky=(E), padx=175, pady=10)
+        
+        ttk.Button(iuFrame, text="Pesquisar", command=self.inventory_qty).grid(column=1, row=1, sticky=(E))
+        ttk.Button(iuFrame, text="Atualizar", style="menuButton.TButton", command=self.inventory_change).grid(column=1, row=4, pady=10)
+
+    def inventory_change(self):
+        db_update = "UPDATE Pecas SET qtd= ? WHERE id = ?"
+        qtd = (self.iuEntrys[1].get())
+        id = (self.iuEntrys[0].get())
+        update = self.cursor.execute(db_update, (qtd, id))
+        if(update):
+            self.show_message(self.iuFrame, "QUANTIDADE ATUALIZADA COM SUCESSO!", "Green", 1, 4)
+        else:
+            self.show_message(self.iuFrame, "OCORREU UM ERRO!", "Red", 1, 4)
+
+    def inventory_qty(self):
+        db_query = "SELECT qtd FROM Pecas WHERE id = ?"
+        values = (self.iuEntrys[0].get(),)
+        self.cursor.execute(db_query, values)
+        itemQty = self.cursor.fetchone()
+        self.itemQty.config(text=itemQty)   
+
+    def inventory_report(self):
+        irMenu, irFrame = self.new_window("Relatório de Estoque")
+        irMenu.columnconfigure(1, weight=1)
+        irFrame.columnconfigure(1, weight=1)
+        irTitle = ttk.Label(irFrame, text="RELATÓRIO DE ESTOQUE", font=("Arial Bold", 46))
+        irTitle.grid(column=1, row=0, pady=5)
+
+        self.irFilter_check = BooleanVar()
+        self.irFilter = ttk.Checkbutton(irFrame, text="Apenas disponíveis", variable=self.irFilter_check)
+        self.irFilter.grid(column=1, row=1, pady=10)
+
+        irConfirm = ttk.Button(irFrame, text="Gerar relatório", command=self.report_print)
+        irConfirm.grid(column=1, row=2, pady=10)
+
+        self.reportView = self.items_view(irFrame)
+
+    def report_print(self):
+        if(self.irFilter_check.get()):
+            db_query = "SELECT * FROM Pecas WHERE qtd >= 1"
+            self.cursor.execute(db_query)
+            dbList = self.cursor.fetchall()
+        else:
+            db_query = "SELECT * FROM Pecas"
+            self.cursor.execute(db_query)
+            dbList = self.cursor.fetchall()
+
+        for item in self.reportView.get_children():
+            self.reportView.delete(item)
+
+        if dbList:
+            for item in dbList:
+                self.reportView.insert("", "end", values=item)
+        else:
+            print("Nenhum item encontrado.")
+
     def query_menu(self):
 
         queryMenu, qmFrame = self.new_window("Consultar Estoque")
@@ -88,13 +167,13 @@ class menu: #criando o menu
         self.searchEntry = ttk.Entry(qmFrame, width=25)
         self.searchEntry.grid(column=1, row=4, pady=5)
         self.searchEntry.bind("<Return>", lambda event: self.stock_list())
-        self.items_view()
+        self.items_view(qmFrame)
 
-    def items_view(self):
-        self.stockList = ttk.Treeview(self.qmFrame, columns=("id", "desc", "qtd", "price", "loc"), show="headings")
+    def items_view(self, frame):
+        self.stockList = ttk.Treeview(frame, columns=("id", "desc", "qtd", "price", "loc"), show="headings")
         self.stockList.grid(column=1, row=5, pady=10)
 
-        self.stockList.heading("id", text="ID")
+        self.stockList.heading("id", text="Código")
         self.stockList.heading("desc", text="Descrição")
         self.stockList.heading("qtd", text="Quantidade")
         self.stockList.heading("price", text="Preço")
@@ -105,6 +184,8 @@ class menu: #criando o menu
         self.stockList.column("qtd", anchor="center", width=100)
         self.stockList.column("price", anchor="center", width=100)
         self.stockList.column("loc", anchor="center", width=100)
+
+        return self.stockList
 
     def stock_list(self):
         if self.searchOption.get()==self.options[0]:
@@ -186,8 +267,8 @@ class menu: #criando o menu
             ("Cadastrar Estoque", self.register_menu),
             ("Consultar Estoque", self.query_menu),
             ("Localizar Produto", lambda: None),
-            ("Alterar Quantidade", lambda: None),
-            ("Relatório", lambda: None),
+            ("Alterar Quantidade", self.inventory_update),
+            ("Relatório", self.inventory_report),
             ("Sair", self.window.destroy)
         ]
 
