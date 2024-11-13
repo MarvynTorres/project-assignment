@@ -61,6 +61,32 @@ class menu: #criando o menu
         registeriten = ttk.Button(rmFrame, text="CADASTRAR ESTOQUE", command=self.register_inventory, width=20, style="registerButton.TButton")
         registeriten.grid(column=1, row=6, sticky=(S), pady=70)
 
+    def inventory_location(self):
+        ilMenu, ilFrame = self.new_window("Localizar Produto")
+        ilMenu.columnconfigure(1, weight=1)
+        ilFrame.columnconfigure(1, weight=1)
+        iuTitle = ttk.Label(ilFrame, text="LOCALIZAR PRODUTO", font=("Arial Bold", 46))
+        iuTitle.grid(column=1, row=0, pady=10)
+
+        ilLabels = [
+            ("Código do Item:", 1),
+            ("locação do Item:", 2),
+        ]
+        for text, row in ilLabels:
+            ttk.Label(ilFrame, text=text, font=("Arial", 26)).grid(column=1, row=row, pady=10, padx=125,sticky=(W))
+            if(row==1):
+                self.itemCode = ttk.Entry(ilFrame, width=25)
+                self.itemCode.grid(column=1, row=row, pady=10, padx=125, sticky=(E))
+                ttk.Button(ilFrame, text="Localizar", command=self.item_location).grid(column=1, row=row, pady=10, padx=30, sticky=(E))
+
+        self.ilLocation = ttk.Label(ilFrame, text=None, font=("Arial",26))
+        self.ilLocation.grid(column=1, row=2, pady=10, padx=150, sticky=(E))
+
+    def item_location(self):
+        db_query = "SELECT loc FROM Pecas WHERE id = ?"
+        self.cursor.execute(db_query, (self.itemCode.get(),))
+        self.ilLocation.config(text=(self.cursor.fetchone()))
+
     def inventory_update(self):
         iuMenu, iuFrame = self.new_window("Alterar Quantidade")
         self.iuFrame = iuFrame
@@ -266,7 +292,7 @@ class menu: #criando o menu
         buttons = [
             ("Cadastrar Estoque", self.register_menu),
             ("Consultar Estoque", self.query_menu),
-            ("Localizar Produto", lambda: None),
+            ("Localizar Produto", self.inventory_location),
             ("Alterar Quantidade", self.inventory_update),
             ("Relatório", self.inventory_report),
             ("Sair", self.window.destroy)
